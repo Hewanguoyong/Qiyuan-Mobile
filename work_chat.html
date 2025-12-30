@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>瞰世科技 | 内部协同</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -29,7 +29,7 @@
             background-color: var(--bg-app);
             color: var(--text-primary);
             height: 100vh;
-            overflow: hidden;
+            overflow: hidden; /* 禁止整个页面滚动，只允许聊天区域滚动 */
             display: flex;
         }
 
@@ -41,10 +41,9 @@
             background-repeat: no-repeat; background-size: contain; opacity: 0.12; z-index: 9999; pointer-events: none; mix-blend-mode: screen;
         }
 
-        /* --- 页码样式 (位置上调) --- */
+        /* --- 页码样式 --- */
         .page-number {
             position: fixed;
-            /* 修改点：向上移动，避开输入框 */
             bottom: 120px; 
             right: 30px;
             color: #8a7f6e; 
@@ -66,6 +65,7 @@
             width: var(--sidebar-width); background-color: var(--bg-sidebar);
             border-right: 1px solid var(--border-color); display: flex; flex-direction: column;
             align-items: center; padding: 20px 0;
+            flex-shrink: 0; /* 禁止被压缩 */
         }
         .brand-logo {
             width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent), #0051ff);
@@ -90,6 +90,7 @@
         .list-panel {
             width: var(--panel-width); background-color: var(--bg-panel);
             border-right: 1px solid var(--border-color); display: flex; flex-direction: column;
+            flex-shrink: 0; /* 禁止被压缩 */
         }
         .panel-header {
             padding: 20px; border-bottom: 1px solid var(--border-color);
@@ -126,6 +127,7 @@
         /* 3. 右侧聊天 */
         .chat-main {
             flex: 1; display: flex; flex-direction: column; background-color: var(--bg-chat); position: relative;
+            min-width: 0; /* 关键：允许Flex子元素缩小 */
         }
         .chat-header {
             padding: 15px 25px; border-bottom: 1px solid var(--border-color);
@@ -193,6 +195,51 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+        /* ========================================================== */
+        /* ★ 核心修改：强制手机端显示完整对话窗口 (Mobile Fix) ★ */
+        /* ========================================================== */
+        @media (max-width: 768px) {
+            /* 1. 强制隐藏左侧菜单和列表，把空间全部让给聊天窗口 */
+            .sidebar-nav, .list-panel {
+                display: none !important; 
+            }
+
+            /* 2. 聊天窗口强制占满屏幕 */
+            .chat-main {
+                width: 100vw;
+                height: 100vh;
+                position: fixed; /* 固定定位，确保不被挤走 */
+                top: 0; left: 0;
+            }
+
+            /* 3. 调整水印大小和位置 (匹配小屏幕) */
+            .gourd-watermark {
+                width: 70px; height: 100px;
+                bottom: -5px; right: 5px;
+                opacity: 0.08;
+            }
+
+            /* 4. 调整页码位置，避免遮挡 */
+            .page-number {
+                bottom: 90px;
+                right: 15px;
+                font-size: 12px;
+            }
+
+            /* 5. 聊天气泡稍微宽一点，利用屏幕空间 */
+            .message-content {
+                max-width: 85%;
+            }
+
+            /* 6. 隐藏输入框左侧的图标(表情/附件)，防止手机打字拥挤 */
+            .input-actions-left {
+                display: none;
+            }
+            .chat-input-area {
+                padding: 10px;
+            }
+        }
 
     </style>
 </head>
@@ -418,29 +465,114 @@
 
         window.onload = () => {
              msgContainer.scrollTop = msgContainer.scrollHeight;
-             chatInput.focus();
         }
     </script>
-<script>
-    (function() {
-        const STORAGE_KEY = 'qiyuan_browsing_history';
-        const pageInfo = {
-            title: document.title || '未知页面', 
-            url: window.location.href,
-            time: new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute:'2-digit'})
-        };
+    
+    <script>
+        (function() {
+            const STORAGE_KEY = 'qiyuan_browsing_history';
+            const pageInfo = {
+                title: document.title || '未知页面', 
+                url: window.location.href,
+                time: new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute:'2-digit'})
+            };
 
-        let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        
-        // 防止瞬间重复刷新
-        if (history.length === 0 || history[history.length - 1].url !== pageInfo.url) {
-            history.push(pageInfo);
-            
-            // 【注意】这里不再限制数量了，有多少存多少
-            // 只要硬盘（localStorage）没满，它就会一直记
-            
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+            let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            if (history.length === 0 || history[history.length - 1].url !== pageInfo.url) {
+                history.push(pageInfo);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+            }
+        })();
+    </script>
+
+    <style>
+        /* 手机端工具栏样式 */
+        .mobile-tools-v2 {
+            position: fixed;
+            bottom: 30px; left: 20px;
+            z-index: 99999 !important;
+            display: flex; flex-direction: column; gap: 15px;
         }
-    })();
-</script></body>
+        .tool-btn-v2 {
+            width: 50px; height: 50px;
+            background-color: rgba(26, 26, 26, 0.95);
+            border: 1px solid #a89476;
+            border-radius: 50%;
+            color: #a89476;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 1.2rem; text-decoration: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+            cursor: pointer;
+        }
+        .tool-btn-v2:active { transform: scale(0.95); }
+
+        /* 笔记弹窗样式 */
+        .note-modal-v2 {
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            z-index: 100000 !important;
+        }
+        .note-box-v2 {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 85%; max-width: 400px;
+            background-color: #1a1a1a;
+            border: 1px solid #a89476;
+            padding: 20px; border-radius: 4px;
+        }
+        .note-header-v2 {
+            display: flex; justify-content: space-between; margin-bottom: 15px;
+            border-bottom: 1px dashed #5a5244; padding-bottom: 10px;
+        }
+        .note-area-v2 {
+            width: 100%; height: 200px;
+            background: #0f0f0f; border: 1px solid #333; color: #e4dccf;
+            padding: 10px; font-family: sans-serif; font-size: 16px; resize: none;
+        }
+    </style>
+
+    <div class="mobile-tools-v2">
+        <a href="index.html" class="tool-btn-v2">
+            <i class="fas fa-home"></i>
+        </a>
+        <div class="tool-btn-v2" onclick="toggleNoteModal(true)">
+            <i class="fas fa-book-open"></i>
+        </div>
+    </div>
+
+    <div class="note-modal-v2" id="noteModalV2" onclick="if(event.target === this) toggleNoteModal(false)">
+        <div class="note-box-v2">
+            <div class="note-header-v2">
+                <span style="color: #d4b483;">访客手札</span>
+                <span style="cursor: pointer; color: #8a7f6e; font-size: 1.5rem;" onclick="toggleNoteModal(false)">&times;</span>
+            </div>
+            <textarea class="note-area-v2" id="universalNoteV2" placeholder="在此记录线索..."></textarea>
+        </div>
+    </div>
+
+    <script>
+        function toggleNoteModal(show) {
+            const modal = document.getElementById('noteModalV2');
+            const textarea = document.getElementById('universalNoteV2');
+            
+            if (show) {
+                modal.style.display = 'block';
+                // 加载笔记
+                if(textarea) textarea.value = localStorage.getItem('qiyuan_universal_note') || '';
+            } else {
+                modal.style.display = 'none';
+            }
+        }
+
+        (function(){
+            const textarea = document.getElementById('universalNoteV2');
+            if(textarea) {
+                textarea.addEventListener('input', function() {
+                    localStorage.setItem('qiyuan_universal_note', this.value);
+                });
+            }
+        })();
+    </script>
+</body>
 </html>
