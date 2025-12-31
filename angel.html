@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>你是我的天使</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* --- 全局设置 (红绿配色 / 数据档案风) --- */
+        :root {
+            --text-green: #00ff41; /* 黑客绿/终端绿 */
+            --text-red: #ff3333;   /* 警告红 */
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Roboto Mono', "SimSun", monospace;
+            color: var(--text-green);
+            line-height: 1.6;
+            min-height: 100vh;
+            background-color: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            cursor: crosshair;
+            position: relative;
+        }
+
+        /* --- 核心大字 --- */
+        .main-message {
+            font-size: 5vw;
+            font-weight: 700;
+            color: var(--text-red);
+            text-align: center;
+            letter-spacing: 5px;
+            margin: 0;
+            padding: 20px;
+            text-shadow: 0 0 10px rgba(255, 51, 51, 0.5), 0 0 20px rgba(255, 51, 51, 0.3);
+            z-index: 100; /* 确保文字在所有图片之上 */
+            animation: textFlicker 3s infinite alternate;
+        }
+
+        @keyframes textFlicker {
+            0% { opacity: 0.8; text-shadow: 0 0 8px rgba(255, 51, 51, 0.4); }
+            50% { opacity: 1; text-shadow: 0 0 15px rgba(255, 51, 51, 0.7); }
+            100% { opacity: 0.8; text-shadow: 0 0 8px rgba(255, 51, 51, 0.4); }
+        }
+
+        /* --- 散落图片样式 --- */
+        .image-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .floating-image {
+            position: absolute;
+            object-fit: cover;
+            border: 5px solid var(--text-red); /* 加粗红色边框 */
+            box-shadow: 0 0 15px rgba(255, 51, 51, 0.4);
+            filter: grayscale(80%) contrast(1.1) brightness(0.9);
+            transition: transform 0.5s ease-out;
+            z-index: 5;
+        }
+        
+        /* --- 页码样式 --- */
+        .page-number {
+            position: fixed;
+            bottom: 20px;
+            right: 30px;
+            color: var(--text-red); /* 警告红，与核心大字一致 */
+            font-size: 14px; 
+            font-family: 'Roboto Mono', monospace; /* 保持等宽字体风格 */
+            letter-spacing: 2px;
+            z-index: 10000;
+            pointer-events: none;
+            opacity: 0.8;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(255, 51, 51, 0.5); /* 红色发光 */
+        }
+
+        /* ========================================================== */
+        /* ★ 核心修改：通用手机插件包 (适配惊悚红黑风格) ★ */
+        /* ========================================================== */
+        /* 手机端工具栏样式 */
+        .mobile-tools-horror {
+            position: fixed;
+            bottom: 30px; left: 20px;
+            z-index: 99999 !important;
+            display: flex; flex-direction: column; gap: 15px;
+        }
+        .tool-btn-horror {
+            width: 50px; height: 50px;
+            background-color: rgba(0, 0, 0, 0.8); /* 半透明黑底 */
+            border: 2px solid #ff3333; /* 荧光红边框 */
+            border-radius: 50%;
+            color: #ff3333; /* 荧光红图标 */
+            display: flex; justify-content: center; align-items: center;
+            font-size: 1.2rem; text-decoration: none;
+            box-shadow: 0 0 15px rgba(255, 51, 51, 0.6);
+            cursor: pointer;
+        }
+        .tool-btn-horror:active { transform: scale(0.95); background: #330000; }
+
+        /* 笔记弹窗样式 */
+        .note-modal-horror {
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.95); /* 极黑遮罩 */
+            z-index: 100000 !important;
+        }
+        .note-box-horror {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 85%; max-width: 400px;
+            background-color: #000;
+            border: 2px solid #ff3333;
+            padding: 20px; border-radius: 4px;
+            box-shadow: 0 0 30px rgba(255, 51, 51, 0.4);
+        }
+        .note-header-horror {
+            display: flex; justify-content: space-between; margin-bottom: 15px;
+            border-bottom: 1px dashed #ff3333; padding-bottom: 10px;
+        }
+        .note-title-horror { color: #ff3333; font-weight: bold; font-family: 'Roboto Mono', monospace; }
+        .note-area-horror {
+            width: 100%; height: 200px;
+            background: #111; border: 1px solid #333; color: #00ff41; /* 输入文字为黑客绿 */
+            padding: 10px; font-family: 'Roboto Mono', monospace; font-size: 16px; resize: none;
+            outline: none;
+        }
+        .note-area-horror:focus { border-color: #ff3333; }
+
+        /* ========================================================== */
+        /* ★ 核心修改：移动端响应式适配 (Mobile Styles) ★ */
+        /* ========================================================== */
+        @media (max-width: 768px) {
+            .main-message {
+                font-size: 2rem; /* 手机上字体稍微调小 */
+                letter-spacing: 2px;
+            }
+            .floating-image {
+                border-width: 2px; /* 手机上边框细一点 */
+                box-shadow: 0 0 8px rgba(255, 51, 51, 0.4);
+            }
+            .page-number {
+                bottom: 100px; /* 避开底部按钮 */
+                right: 20px;
+                font-size: 12px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="page-number">EX</div>
+
+    <div class="mobile-tools-horror">
+        <a href="index.html" class="tool-btn-horror">
+            <i class="fas fa-home"></i>
+        </a>
+        
+        <div class="tool-btn-horror" onclick="window.history.back()">
+            <i class="fas fa-arrow-left"></i>
+        </div>
+
+        <div class="tool-btn-horror" onclick="toggleNoteModal(true)">
+            <i class="fas fa-book-open"></i>
+        </div>
+    </div>
+
+    <div class="note-modal-horror" id="noteModalHorror" onclick="if(event.target === this) toggleNoteModal(false)">
+        <div class="note-box-horror">
+            <div class="note-header-horror">
+                <span class="note-title-horror">OBSERVATION LOG</span>
+                <span style="cursor: pointer; color: #ff3333; font-size: 1.5rem;" onclick="toggleNoteModal(false)">&times;</span>
+            </div>
+            <textarea class="note-area-horror" id="universalNoteHorror" placeholder="DATA ENTRY..."></textarea>
+        </div>
+    </div>
+
+    <h1 class="main-message">你是我的天使。</h1>
+
+    <div class="image-container" id="imageContainer">
+    </div>
+
+    <script>
+        const imageFiles = [
+            "偷拍1.jpg", "偷拍2.jpg", "偷拍3.jpg", "偷拍4.jpg",
+            "偷拍5.jpg", "偷拍6.jpg", "偷拍7.jpg", "偷拍8.jpg", "偷拍9.jpg"
+        ];
+        const imageContainer = document.getElementById('imageContainer');
+
+        // 检测是否是手机端
+        const isMobile = window.innerWidth <= 768;
+
+        // 修改点：根据设备类型应用不同的尺寸和位置
+        let imagePositions;
+
+        if (isMobile) {
+            // --- 手机端布局 (更小、更密集的排列) ---
+            imagePositions = [
+                { x: '5%', y: '10%', w: 120, h: 100, r: -5 },   // Top Left
+                { x: '60%', y: '5%', w: 110, h: 140, r: 8 },    // Top Right
+                
+                { x: '10%', y: '30%', w: 100, h: 120, r: 3 },   // Mid Left
+                { x: '70%', y: '40%', w: 130, h: 90, r: -2 },   // Mid Right
+                
+                { x: '40%', y: '55%', w: 140, h: 110, r: 6 },   // Center
+                
+                { x: '5%', y: '70%', w: 110, h: 130, r: -8 },   // Bottom Left
+                { x: '65%', y: '80%', w: 120, h: 100, r: 4 },   // Bottom Right
+                
+                { x: '30%', y: '20%', w: 90, h: 110, r: 10 },   // Fill 1
+                { x: '50%', y: '85%', w: 100, h: 80, r: -3 }    // Fill 2
+            ];
+        } else {
+            // --- 电脑端布局 (原有的大尺寸) ---
+            imagePositions = [
+                { x: '2%', y: '3%', w: 350, h: 280, r: -7 },    // Top Left
+                { x: '20%', y: '60%', w: 320, h: 400, r: 2 },   // Mid Left-Bottom
+                { x: '12%', y: '30%', w: 250, h: 320, r: 10 },  // Mid-Left Center
+                
+                { x: '35%', y: '75%', w: 300, h: 200, r: -5 },  // Low Center
+                { x: '40%', y: '40%', w: 380, h: 250, r: 6 },   // Mid-Center Right
+                
+                { x: '50%', y: '15%', w: 300, h: 350, r: -10 }, // Top Mid-Right
+                { x: '68%', y: '5%', w: 280, h: 200, r: 15 },   // Top Right Corner
+                
+                { x: '80%', y: '50%', w: 300, h: 350, r: -2 },  // Far Right
+                { x: '75%', y: '75%', w: 250, h: 300, r: 8 }    // Bottom Right
+            ];
+        }
+        
+        imageFiles.forEach((file, index) => {
+            // 防止数组越界 (如果图片数量超过预设位置)
+            if (index >= imagePositions.length) return;
+
+            const img = document.createElement('img');
+            img.src = file;
+            img.alt = `偷拍照片 ${index + 1}`;
+            img.classList.add('floating-image');
+
+            const pos = imagePositions[index];
+
+            // 应用固定的尺寸和位置
+            img.style.width = `${pos.w}px`;
+            img.style.height = `${pos.h}px`;
+            img.style.left = pos.x;
+            img.style.top = pos.y;
+            img.style.transform = `rotate(${pos.r}deg)`;
+            
+            imageContainer.appendChild(img);
+        });
+
+        // 笔记功能逻辑
+        function toggleNoteModal(show) {
+            const modal = document.getElementById('noteModalHorror');
+            const textarea = document.getElementById('universalNoteHorror');
+            
+            if (show) {
+                modal.style.display = 'block';
+                // 加载笔记 (使用全站通用的 Key)
+                if(textarea) textarea.value = localStorage.getItem('qiyuan_universal_note') || '';
+            } else {
+                modal.style.display = 'none';
+            }
+        }
+
+        (function(){
+            const textarea = document.getElementById('universalNoteHorror');
+            if(textarea) {
+                textarea.addEventListener('input', function() {
+                    localStorage.setItem('qiyuan_universal_note', this.value);
+                });
+            }
+        })();
+    </script>
+
+    <script>
+        (function() {
+            const STORAGE_KEY = 'qiyuan_browsing_history';
+            const pageInfo = {
+                title: document.title || '未知页面', 
+                url: window.location.href,
+                time: new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute:'2-digit'})
+            };
+
+            let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            
+            // 防止瞬间重复刷新
+            if (history.length === 0 || history[history.length - 1].url !== pageInfo.url) {
+                history.push(pageInfo);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+            }
+        })();
+    </script>
+</body>
+</html>

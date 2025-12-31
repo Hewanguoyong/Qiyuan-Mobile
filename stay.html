@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>留下</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* --- 基础设置 --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'SimSun', 'Songti SC', serif; 
+            background-color: #000000; 
+            color: #dcdcdc; 
+            line-height: 2;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            overflow-x: hidden;
+            font-size: 18px; 
+            position: relative;
+        }
+
+        /* --- 文字内容容器 --- */
+        .container {
+            max-width: 650px; 
+            width: 100%;
+            text-align: left;
+            position: relative;
+            z-index: 10;
+            opacity: 0;
+            animation: emerge 3s ease forwards;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: normal;
+            color: #fff;
+            margin-bottom: 50px;
+            text-align: center;
+            letter-spacing: 8px;
+            padding-left: 8px; 
+        }
+
+        p { margin-bottom: 2.5rem; text-align: justify; }
+
+        .quote {
+            color: #999;
+            font-size: 1.1rem; 
+            font-style: italic;
+            border-left: 3px solid #333;
+            padding-left: 20px;
+            margin: 30px 0;
+        }
+
+        .btn-wrapper {
+            margin-top: 80px;
+            text-align: center;
+            opacity: 0;
+            animation: fadeInBtn 2s ease 2s forwards; 
+        }
+
+        .back-btn {
+            background: transparent;
+            border: 2px solid #333; 
+            color: #666;
+            padding: 12px 50px;
+            font-family: 'SimSun', serif;
+            font-size: 1.2rem; 
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s; 
+            letter-spacing: 5px;
+            padding-left: 55px; 
+        }
+
+        .back-btn:hover {
+            border-color: #fff;
+            color: #fff;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
+
+        /* --- 核心：中央金色葫芦水印 --- */
+        .gourd-center {
+            position: fixed;
+            top: 45%; 
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px; 
+            height: 320px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 160'%3E%3Cpath fill='%23a89476' d='M50 10c-15 0-25 12-25 30 0 15 8 25 20 28-18 5-30 20-30 42 0 25 15 45 35 45s35-20 35-45c0-22-12-37-30-42 12-3 20-13 20-28C75 22 65 10 50 10zm0-10c5 0 8 5 5 10h-10c-3-5 0-10 5-10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-size: contain;
+            opacity: 0; 
+            z-index: 0;
+            pointer-events: none;
+            mix-blend-mode: screen;
+            transition: opacity 1s ease;
+        }
+
+        /* --- 心电图容器 --- */
+        .ecg-container {
+            position: fixed;
+            top: 80%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%; 
+            max-width: 600px;
+            height: 120px;
+            z-index: 5;
+            display: none; 
+            pointer-events: none;
+            mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%);
+        }
+
+        .ecg-line {
+            fill: none;
+            stroke: #a89476; /* 暗金色 */
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-opacity: 1;
+        }
+
+        /* --- THE END 样式 --- */
+        .the-end {
+            position: fixed;
+            top: 92%; 
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'SimSun', serif;
+            font-size: 1.2rem;
+            letter-spacing: 8px;
+            padding-left: 8px; 
+            color: #a89476; 
+            opacity: 0; 
+            z-index: 6;
+            pointer-events: none;
+            transition: opacity 4s ease; 
+        }
+        
+        .the-end.visible {
+            opacity: 1;
+        }
+
+        /* --- 页码样式 --- */
+        .page-number {
+            position: fixed;
+            bottom: 20px;
+            right: 30px;
+            color: #666; /* 非常暗淡 */
+            font-size: 14px; 
+            font-family: 'SimSun', serif;
+            letter-spacing: 2px;
+            z-index: 10000;
+            pointer-events: none;
+            opacity: 0.4;
+        }
+
+        @keyframes emerge {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInBtn {
+            to { opacity: 1; }
+        }
+
+        /* ========================================================== */
+        /* ★ 核心修改：移动端响应式适配 (Mobile Styles) ★ */
+        /* ========================================================== */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 15px;
+            }
+            h1 {
+                font-size: 1.8rem;
+                margin-bottom: 30px;
+            }
+            p {
+                font-size: 1rem;
+                margin-bottom: 2rem;
+            }
+            
+            /* 调整动画位置，避免被底部遮挡 */
+            .ecg-container {
+                top: 75%;
+            }
+            .the-end {
+                top: 88%;
+                font-size: 1rem;
+            }
+            
+            /* 页码位置 */
+            .page-number {
+                bottom: 100px;
+                right: 20px;
+                font-size: 12px;
+            }
+        }
+
+        /* ========================================================== */
+        /* ★ 核心修改：通用手机插件包 (适配极简灰风格) ★ */
+        /* ========================================================== */
+        /* 手机端工具栏样式 */
+        .mobile-tools-void {
+            position: fixed;
+            bottom: 30px; left: 20px;
+            z-index: 99999 !important;
+            display: flex; flex-direction: column; gap: 15px;
+        }
+        .tool-btn-void {
+            width: 50px; height: 50px;
+            background-color: rgba(255, 255, 255, 0.05); /* 极淡透明 */
+            border: 1px solid #666; /* 灰色边框 */
+            border-radius: 50%;
+            color: #888; /* 灰色图标 */
+            display: flex; justify-content: center; align-items: center;
+            font-size: 1.2rem; text-decoration: none;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            backdrop-filter: blur(2px);
+            cursor: pointer;
+        }
+        .tool-btn-void:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.1); }
+
+        /* 笔记弹窗样式 */
+        .note-modal-void {
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            z-index: 100000 !important;
+        }
+        .note-box-void {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 85%; max-width: 400px;
+            background-color: #111;
+            border: 1px solid #444;
+            padding: 20px; border-radius: 4px;
+            box-shadow: 0 0 30px rgba(0,0,0,1);
+        }
+        .note-header-void {
+            display: flex; justify-content: space-between; margin-bottom: 15px;
+            border-bottom: 1px solid #333; padding-bottom: 10px;
+        }
+        .note-title-void { color: #888; font-weight: bold; font-family: 'SimSun', serif; }
+        .note-area-void {
+            width: 100%; height: 200px;
+            background: #000; border: 1px solid #333; color: #bbb;
+            padding: 10px; font-family: 'SimSun', serif; font-size: 16px; resize: none;
+            outline: none;
+        }
+        .note-area-void:focus { border-color: #666; }
+
+    </style>
+</head>
+<body>
+
+    <div class="page-number">N/A</div>
+
+    <div class="mobile-tools-void">
+        <a href="index.html" class="tool-btn-void">
+            <i class="fas fa-home"></i>
+        </a>
+        
+        <div class="tool-btn-void" onclick="window.history.back()">
+            <i class="fas fa-arrow-left"></i>
+        </div>
+
+        <div class="tool-btn-void" onclick="toggleNoteModal(true)">
+            <i class="fas fa-book-open"></i>
+        </div>
+    </div>
+
+    <div class="note-modal-void" id="noteModalVoid" onclick="if(event.target === this) toggleNoteModal(false)">
+        <div class="note-box-void">
+            <div class="note-header-void">
+                <span class="note-title-void">访客手札</span>
+                <span style="cursor: pointer; color: #555; font-size: 1.5rem;" onclick="toggleNoteModal(false)">&times;</span>
+            </div>
+            <textarea class="note-area-void" id="universalNoteVoid" placeholder="......"></textarea>
+        </div>
+    </div>
+
+    <div id="gourdMark" class="gourd-center"></div>
+
+    <div id="ecgMark" class="ecg-container">
+        <svg viewBox="0 0 800 100" width="100%" height="100%" preserveAspectRatio="none">
+            <path id="dynamicPath" class="ecg-line" d="" />
+        </svg>
+    </div>
+    
+    <div id="endText" class="the-end">THE END</div>
+
+    <div class="container" id="main-content">
+        <h1>你选择留下</h1>
+
+        <p>无关勇敢或者放弃，你只感觉到深入骨髓的疲惫。<br>
+        熄灭屏幕，靠在椅背上长舒一口气。</p>
+
+        <p>那个叫李振的人，无论他说的是真是假，</p>
+        <div class="quote">
+            “因为你和曾经的我一样，在这个世上孤身一人。”
+        </div>
+        <p>你不偏爱这样的措辞，像是在接受他的同情，你分明没有要求过。</p>
+
+        <p>你拿起一旁的张果老木雕，摩挲着它被替换掉的真身。<br>
+        如今它不是什么价值连城的古董，而是一个不伦不类的物件儿了。<br>
+        因为它？厄运会找上你？<br>
+        就像找上郑群超那样？</p>
+
+        <p>那等待你的是什么呢？想着，你心中竟然升起一丝难以言说的喜悦。<br>
+        就算继续又如何呢？张景会死吗？你会失去这份工作吗？你的生活还会继续这样重复吗？会遇到另一个郑群超吗？会丢给你其他的烂摊子，就像丢给你这尊木雕一样吗？<br>
+        那倒不如亲眼看看所谓命运长什么样子。</p>
+
+        <p>不远处同事隐约的谈笑声，空调单调的嗡鸣，这些声音逐渐远去。<br>
+        你始终睁着眼睛，直到身后传来一声叹息。</p>
+
+        <div class="btn-wrapper">
+            <button class="back-btn" onclick="turnToVoid()">回头</button>
+        </div>
+    </div>
+
+    <script>
+        // 1. 第一遍：正常起伏
+        const pathNormal = "M0,50 L30,50 L40,60 L50,10 L65,90 L80,50 L100,50 L180,50 L190,60 L200,10 L215,90 L230,50 L250,50 L330,50 L340,60 L350,10 L365,90 L380,50 L400,50 L480,50 L490,60 L500,10 L515,90 L530,50 L550,50 L630,50 L640,60 L650,10 L665,90 L680,50 L800,50";
+        
+        // 2. 第二遍：逐渐消失拉平
+        const pathDyingTransition = "M0,50 L30,50 L40,40 L50,60 L60,10 L75,90 L90,40 L100,60 L110,50 L180,50 L190,45 L200,55 L210,50 L280,50 L290,48 L300,52 L310,50 L330,50 L335,49 L340,51 L345,50 L800,50";
+
+        function turnToVoid() {
+            const container = document.getElementById('main-content');
+            const gourd = document.getElementById('gourdMark');
+            const ecgContainer = document.getElementById('ecgMark');
+            const pathElement = document.getElementById('dynamicPath');
+            const mobileTools = document.querySelector('.mobile-tools-void'); // 获取悬浮按钮
+            
+            // 瞬间切换场景
+            container.style.display = 'none';
+            if(mobileTools) mobileTools.style.display = 'none'; // 隐藏悬浮按钮，增强沉浸感
+            
+            document.body.style.transition = 'none'; 
+            document.body.style.backgroundColor = '#050505';
+            
+            // 显示元素
+            gourd.style.opacity = '0.2'; 
+            ecgContainer.style.display = 'block';
+            pathElement.style.opacity = "1";
+
+            // --- 播放序列 ---
+            
+            // 第一遍：正常播放 (4秒)
+            playStroke(pathNormal, 4, function() {
+                
+                // 间隔 0.8 秒
+                setTimeout(() => {
+                    // 播放第二遍（从正常到消失），5秒
+                    pathElement.style.opacity = "0.8"; 
+                    playStroke(pathDyingTransition, 5, function() {
+                        // 动画结束后，让 "THE END" 浮现
+                        document.getElementById('endText').classList.add('visible');
+                    }); 
+                }, 800);
+
+            });
+        }
+
+        // 核心动画函数
+        function playStroke(pathData, durationSeconds, callback) {
+            const pathElement = document.getElementById('dynamicPath');
+            // 1. 关闭过渡，准备重置
+            pathElement.style.transition = 'none';
+            // 2. 设置新路径
+            pathElement.setAttribute('d', pathData);
+            // 3. 获取该路径的精确长度
+            const length = pathElement.getTotalLength();
+            // 4. 将线段设置为隐藏状态
+            pathElement.style.strokeDasharray = length + ' ' + length;
+            pathElement.style.strokeDashoffset = length;
+            // 5. 强制浏览器重绘
+            pathElement.getBoundingClientRect();
+            // 6. 开启过渡动画并开始绘制
+            pathElement.style.transition = `stroke-dashoffset ${durationSeconds}s ease-out`;
+            pathElement.style.strokeDashoffset = '0';
+            // 7. 回调
+            if (callback) {
+                setTimeout(callback, durationSeconds * 1000);
+            }
+        }
+
+        // 笔记功能逻辑
+        function toggleNoteModal(show) {
+            const modal = document.getElementById('noteModalVoid');
+            const textarea = document.getElementById('universalNoteVoid');
+            
+            if (show) {
+                modal.style.display = 'block';
+                // 加载笔记
+                if(textarea) textarea.value = localStorage.getItem('qiyuan_universal_note') || '';
+            } else {
+                modal.style.display = 'none';
+            }
+        }
+
+        (function(){
+            const textarea = document.getElementById('universalNoteVoid');
+            if(textarea) {
+                textarea.addEventListener('input', function() {
+                    localStorage.setItem('qiyuan_universal_note', this.value);
+                });
+            }
+        })();
+    </script>
+</body>
+</html>
