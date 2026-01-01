@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>唐音再引 - 诗境音乐雅集 | 憩园</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* --- 基础与字体 --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'SimSun', 'KaiTi', 'STKaiti', serif;
+            background-color: #0a0a0a;
+            color: #e4dccf;
+            line-height: 1.8;
+            overflow-x: hidden; /* 禁止横向滚动 */
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* --- 背景水墨动画 --- */
+        .ink-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                radial-gradient(circle at 80% 20%, rgba(60, 40, 30, 0.15) 2%, transparent 10%),
+                radial-gradient(circle at 20% 80%, rgba(20, 30, 40, 0.1) 3%, transparent 7%);
+            z-index: -2; opacity: 1; background-size: 200% 200%;
+            animation: inkFlow 25s ease-in-out infinite alternate;
+        }
+        @keyframes inkFlow { 0% { background-position: 0% 0%; } 100% { background-position: 100% 100%; } }
+
+        /* --- 核心：金色葫芦水印 (已修改尺寸) --- */
+        .gourd-watermark {
+            position: fixed;
+            bottom: -20px; 
+            right: 10px; 
+            /* 修改点：严格按照要求调整大小 */
+            width: 100px; 
+            height: 135px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 160'%3E%3Cpath fill='%23a89476' d='M50 10c-15 0-25 12-25 30 0 15 8 25 20 28-18 5-30 20-30 42 0 25 15 45 35 45s35-20 35-45c0-22-12-37-30-42 12-3 20-13 20-28C75 22 65 10 50 10zm0-10c5 0 8 5 5 10h-10c-3-5 0-10 5-10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-size: contain; opacity: 0.12; z-index: 9999; pointer-events: none; mix-blend-mode: screen;
+        }
+
+        /* --- 页码样式 --- */
+        .page-number {
+            position: fixed;
+            bottom: 20px;
+            right: 30px;
+            color: #8a7f6e;
+            font-size: 14px;
+            font-family: 'Georgia', serif;
+            letter-spacing: 2px;
+            z-index: 10000;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        /* --- 导航栏 --- */
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 1; }
+        .main-nav { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 0; border-bottom: 1px solid rgba(168, 148, 118, 0.3); }
+        .nav-links { display: flex; }
+        .nav-link { color: #a89476; text-decoration: none; margin-left: 3rem; font-size: 0.9rem; letter-spacing: 2px; position: relative; transition: color 0.3s ease; }
+        .nav-link:hover { color: #e4dccf; }
+        
+        /* 搜索框 */
+        .search-container { position: relative; width: 220px; }
+        .search-box { width: 100%; padding: 0.5rem 2.5rem 0.5rem 1rem; background-color: rgba(26, 26, 26, 0.8); border: 1px solid rgba(168, 148, 118, 0.4); border-radius: 2px; color: #e4dccf; font-family: 'SimSun', 'STKaiti', serif; font-size: 0.9rem; letter-spacing: 1px; transition: all 0.3s ease; }
+        .search-box:focus { outline: none; border-color: #a89476; }
+        .search-icon { position: absolute; right: 0.8rem; top: 50%; transform: translateY(-50%); color: #a89476; cursor: pointer; }
+
+        /* 1. Hero 巨幕 */
+        .event-hero {
+            position: relative; width: 100%; height: 85vh; margin-top: 2rem;
+            overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+        .hero-img {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover; filter: brightness(0.6) sepia(0.3);
+            transform: scale(1.05); transition: transform 15s ease;
+        }
+        .event-hero:hover .hero-img { transform: scale(1); }
+        
+        .hero-content {
+            position: relative; z-index: 2; text-align: center;
+            border-top: 1px solid rgba(168, 148, 118, 0.5);
+            border-bottom: 1px solid rgba(168, 148, 118, 0.5);
+            padding: 3rem 0;
+            background: rgba(10, 10, 10, 0.4);
+            backdrop-filter: blur(3px);
+            animation: fadeIn 1.5s ease;
+        }
+        .hero-title {
+            font-size: 4.5rem; color: #e4dccf; font-weight: normal; margin: 0; letter-spacing: 10px;
+            text-shadow: 0 0 30px rgba(0,0,0,0.9);
+        }
+        .hero-subtitle { font-family: 'KaiTi', serif; font-size: 1.8rem; color: #a89476; letter-spacing: 5px; margin-top: 1rem; }
+
+        /* 2. 策划人/前言区 */
+        .curator-section { padding: 8rem 0 6rem; text-align: center; max-width: 900px; margin: 0 auto; }
+        .curator-text { font-size: 1.1rem; color: #8a7f6e; line-height: 2.4; text-align: justify; text-align-last: center; margin-bottom: 3rem; }
+        .quote-box { border-left: 3px solid #a89476; padding-left: 2rem; margin: 3rem auto; text-align: left; width: 80%; }
+        .quote-text { font-size: 1.4rem; color: #e4dccf; font-family: 'STKaiti', serif; font-style: italic; }
+        .curator-sign { text-align: right; margin-top: 1rem; color: #a89476; font-size: 1rem; letter-spacing: 2px; }
+
+        /* 3. 活动内容网格 */
+        .highlight-section { padding-bottom: 10rem; }
+        .highlight-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6rem; align-items: start; }
+        
+        .highlight-card { display: flex; flex-direction: column; gap: 1.5rem; opacity: 0; transform: translateY(40px); transition: all 1s ease; }
+        .highlight-card.visible { opacity: 1; transform: translateY(0); }
+        .highlight-card:nth-child(even) { margin-top: 10rem; }
+
+        .img-wrapper { width: 100%; height: 450px; overflow: hidden; position: relative; border: 1px solid rgba(168, 148, 118, 0.2); }
+        .highlight-img { width: 100%; height: 100%; object-fit: cover; transition: transform 1.5s ease, filter 1s ease; filter: grayscale(0.4) contrast(1.1); }
+        .highlight-card:hover .highlight-img { transform: scale(1.1); filter: grayscale(0) contrast(1); }
+        
+        .highlight-info { padding: 0 1rem; }
+        .highlight-title { font-size: 1.8rem; color: #e4dccf; letter-spacing: 3px; margin-bottom: 1rem; border-bottom: 1px solid rgba(168,148,118,0.3); padding-bottom: 0.5rem; display: inline-block;}
+        .highlight-desc { font-size: 1rem; color: #8a7f6e; line-height: 1.8; text-align: justify; }
+
+        /* 4. 信息与预约 */
+        .info-box { background: linear-gradient(135deg, rgba(168, 148, 118, 0.05), transparent); border: 1px solid rgba(168, 148, 118, 0.2); padding: 4rem; max-width: 800px; margin: 0 auto 8rem; text-align: center; }
+        .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-bottom: 3rem; text-align: left; }
+        .info-item h4 { color: #a89476; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.5rem; }
+        .info-item p { color: #e4dccf; font-size: 1.1rem; }
+        
+        .phone-reservation { border: 1px solid #a89476; padding: 2rem; display: inline-block; margin-top: 1rem; background: rgba(10, 10, 10, 0.5); min-width: 300px; }
+        .phone-label { display: block; color: #a89476; font-size: 0.9rem; letter-spacing: 3px; margin-bottom: 0.5rem; text-transform: uppercase; }
+        .phone-number { display: block; color: #e4dccf; font-size: 1.4rem; font-family: 'SimSun', serif; letter-spacing: 2px; }
+        .reserve-note { display: block; margin-top: 1.5rem; color: #5a5244; font-size: 0.9rem; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* ========================================================== */
+        /* ★ 核心修改：移动端响应式适配 (Mobile Styles) ★ */
+        /* ========================================================== */
+        @media (max-width: 900px) {
+            .container { padding: 0 1.5rem; }
+
+            /* 导航栏调整 */
+            .main-nav { flex-direction: column; align-items: center; gap: 1.5rem; }
+            .search-container { width: 100%; margin-bottom: 1.5rem; }
+            .nav-links { width: 100%; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+            .nav-link { margin-left: 0; font-size: 0.85rem; }
+
+            /* Hero调整 */
+            .event-hero { height: 60vh; margin-top: 1rem; }
+            .hero-title { font-size: 2.8rem; letter-spacing: 5px; }
+            .hero-subtitle { font-size: 1.2rem; }
+
+            /* 策划人区域 */
+            .curator-section { padding: 4rem 0; }
+            .curator-text { text-align: left; text-align-last: left; font-size: 1rem; }
+            .quote-box { width: 100%; padding-left: 1rem; }
+
+            /* 网格调整：改为单列 */
+            .highlight-grid { grid-template-columns: 1fr; gap: 4rem; }
+            .highlight-card:nth-child(even) { margin-top: 0; /* 取消错落 */ }
+            .img-wrapper { height: 250px; } /* 图片变小适配手机 */
+
+            /* 信息框调整 */
+            .info-box { padding: 2rem; width: 100%; }
+            .info-grid { grid-template-columns: 1fr; text-align: center; gap: 2rem; }
+            .info-item { text-align: center; }
+            .phone-reservation { min-width: 100%; padding: 1.5rem; }
+
+            /* 页码和水印 */
+            .page-number { bottom: 100px; right: 20px; font-size: 12px; }
+            .gourd-watermark { bottom: 90px; right: 5px; opacity: 0.1; }
+        }
+
+        /* --- 手机端工具栏样式 (左下角) --- */
+        .mobile-tools-v2 {
+            position: fixed;
+            bottom: 30px; left: 20px;
+            z-index: 99999 !important;
+            display: flex; flex-direction: column; gap: 15px;
+        }
+        .tool-btn-v2 {
+            width: 50px; height: 50px;
+            background-color: rgba(26, 26, 26, 0.95);
+            border: 1px solid #a89476;
+            border-radius: 50%;
+            color: #a89476;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 1.2rem; text-decoration: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+            cursor: pointer;
+        }
+        .tool-btn-v2:active { transform: scale(0.95); }
+
+        /* 笔记弹窗样式 */
+        .note-modal-v2 {
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            z-index: 100000 !important;
+        }
+        .note-box-v2 {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 85%; max-width: 400px;
+            background-color: #1a1a1a;
+            border: 1px solid #a89476;
+            padding: 20px; border-radius: 4px;
+        }
+        .note-header-v2 {
+            display: flex; justify-content: space-between; margin-bottom: 15px;
+            border-bottom: 1px dashed #5a5244; padding-bottom: 10px;
+        }
+        .note-area-v2 {
+            width: 100%; height: 200px;
+            background: #0f0f0f; border: 1px solid #333; color: #e4dccf;
+            padding: 10px; font-family: sans-serif; font-size: 16px; resize: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="ink-bg"></div>
+    <div class="gourd-watermark"></div>
+    <div class="page-number">5/41</div>
+
+    <div class="mobile-tools-v2">
+        <a href="index.html" class="tool-btn-v2">
+            <i class="fas fa-home"></i>
+        </a>
+        
+        <div class="tool-btn-v2" onclick="window.history.back()">
+            <i class="fas fa-arrow-left"></i>
+        </div>
+
+        <div class="tool-btn-v2" onclick="toggleNoteModal(true)">
+            <i class="fas fa-book-open"></i>
+        </div>
+    </div>
+
+    <div class="note-modal-v2" id="noteModalV2" onclick="if(event.target === this) toggleNoteModal(false)">
+        <div class="note-box-v2">
+            <div class="note-header-v2">
+                <span style="color: #d4b483;">访客手札</span>
+                <span style="cursor: pointer; color: #8a7f6e; font-size: 1.5rem;" onclick="toggleNoteModal(false)">&times;</span>
+            </div>
+            <textarea class="note-area-v2" id="universalNoteV2" placeholder="在此记录线索..."></textarea>
+        </div>
+    </div>
+
+    <div class="container">
+        <nav class="main-nav">
+            <div class="search-container">
+                <input type="text" class="search-box" placeholder="" id="searchInput">
+                <div class="search-icon" id="searchBtn"><i class="fas fa-search"></i></div>
+            </div>
+            <div class="nav-links">
+                <a href="home.html" class="nav-link">首页</a>
+                <a href="collection.html" class="nav-link">藏品</a>
+                <a href="#" class="nav-link">憩园理念</a>
+                <a href="appointment.html" class="nav-link">预约咨询</a>
+            </div>
+        </nav>
+
+        <header class="event-hero">
+            <img src="音乐会.jpg" alt="唐音雅集" class="hero-img">
+            <div class="hero-content">
+                <h1 class="hero-title">唐音再引</h1>
+                <p class="hero-subtitle">〈李凭箜篌引〉诗境音乐雅集</p>
+            </div>
+        </header>
+
+        <section class="curator-section">
+            <p class="curator-text">
+                盛唐的声响，究竟是何种模样？是长安月下的捣衣声，还是边塞风沙中的羌笛怨？<br>
+                今秋，憩园试图以现代音乐语言，重新叩问那段被时光封存的听觉记忆。<br>
+                由憩园主人<strong>燕筠竹</strong>发起并策划，我们不仅是在复刻一场演出，更是在探寻古典诗意在当下的共鸣。
+            </p>
+            <div class="quote-box">
+                <p class="quote-text">“昆山玉碎凤凰叫，芙蓉泣露香兰笑。”</p>
+                <p class="curator-sign">—— 李贺《李凭箜篌引》</p>
+            </div>
+            <p class="curator-text">
+                在这场特别的雅集中，我们将一同描绘李长吉笔下的瑰丽声画，于光影与旋律交织间，重返那个想象力奔腾的夜晚。
+            </p>
+        </section>
+
+        <section class="highlight-section">
+            <div class="highlight-grid">
+                <div class="highlight-card">
+                    <div class="img-wrapper"><img src="箜篌实物.jpg" class="highlight-img" alt="箜篌演奏"></div>
+                    <div class="highlight-info">
+                        <h3 class="highlight-title">声动裂石</h3>
+                        <p class="highlight-desc">我们将尝试复刻唐朝李凭箜篌表演的盛况。<strong>特别献演：</strong>憩园主人的爱女将亲自登台献技，以家传技艺演绎盛唐遗韵。</p>
+                    </div>
+                </div>
+                <div class="highlight-card">
+                    <div class="img-wrapper"><img src="憩园 洞箫.jpg" class="highlight-img" alt="古董乐器"></div>
+                    <div class="highlight-info">
+                        <h3 class="highlight-title">器韵千年</h3>
+                        <p class="highlight-desc">其中包括一把音色极其清越的<strong>宋代洞箫</strong>，以及散落在历史长河中的古代乐器残件。来宾可于雅集前后近距离凝视。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="info-box">
+            <div class="info-grid">
+                <div class="info-item">
+                    <h4>时间 / Time</h4>
+                    <p>2015年X月X日（周六）<br>19:00 - 21:00</p>
+                </div>
+                <div class="info-item">
+                    <h4>地点 / Location</h4>
+                    <p>憩园 · 隐山厅<br><span style="font-size:0.8rem; color:#8a7f6e;">(具体地址将于确认预约后告知)</span></p>
+                </div>
+                <div class="info-item">
+                    <h4>席位 / Seats</h4>
+                    <p>仅设 30 席<br>Private Event</p>
+                </div>
+            </div>
+            <div class="phone-reservation">
+                <span class="phone-label">仅限会员致电预约 / VIP Reservation</span>
+                <span class="phone-number">请拨打会员专属专线</span>
+            </div>
+            <span class="reserve-note">* 请于工作日 10:00 - 17:00 致电，需核验会员身份</span>
+        </div>
+
+        <footer style="text-align: center; padding: 2rem 0; color: #5a5244; font-size: 0.85rem; border-top: 1px solid rgba(168,148,118,0.2);">
+            <p>憩园 · 仅供预约访客 | 地址不载于公共图册</p>
+            <p>© 2015 Qiyuan. All Serenity Reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        function toggleNoteModal(show) {
+            const modal = document.getElementById('noteModalV2');
+            const textarea = document.getElementById('universalNoteV2');
+            
+            if (show) {
+                modal.style.display = 'block';
+                // 加载笔记
+                if(textarea) textarea.value = localStorage.getItem('qiyuan_universal_note') || '';
+            } else {
+                modal.style.display = 'none';
+            }
+        }
+
+        (function(){
+            const textarea = document.getElementById('universalNoteV2');
+            if(textarea) {
+                textarea.addEventListener('input', function() {
+                    localStorage.setItem('qiyuan_universal_note', this.value);
+                });
+            }
+        })();
+    </script>
+
+    <script>
+        // --- 核心修改：搜索跳转逻辑，统一参数 q ---
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        function performRedirect() {
+            const query = searchInput.value.trim();
+            if (query) window.location.href = `search.html?q=${encodeURIComponent(query)}`;
+        }
+        searchBtn.addEventListener('click', performRedirect);
+        searchInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') performRedirect(); });
+
+        // 滚动淡入动画
+        document.addEventListener("DOMContentLoaded", function() {
+            const cards = document.querySelectorAll('.highlight-card');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+            cards.forEach(card => observer.observe(card));
+        });
+    </script>
+    
+    <script>
+        (function() {
+            const STORAGE_KEY = 'qiyuan_browsing_history';
+            const pageInfo = {
+                title: document.title || '未知页面', 
+                url: window.location.href,
+                time: new Date().toLocaleTimeString('zh-CN', {hour: '2-digit', minute:'2-digit'})
+            };
+
+            let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            
+            // 防止瞬间重复刷新
+            if (history.length === 0 || history[history.length - 1].url !== pageInfo.url) {
+                history.push(pageInfo);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+            }
+        })();
+    </script>
+</body>
+</html>
